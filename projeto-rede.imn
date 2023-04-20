@@ -1,0 +1,273 @@
+node n1 {
+    type router
+    model router
+    network-config {
+	hostname Provedor
+	!
+	interface eth1
+	 ip address 192.0.5.1/24
+	 ipv6 address 2001:db8:3::1/64
+	!
+	interface eth0
+	 ipv6 address 2001:db8:0::1/64
+	 ip address 192.0.2.3/24
+	!
+    }
+    canvas c1
+    iconcoords {235.0 246.0}
+    labelcoords {235.0 278.0}
+    interface-peer {eth0 n2}
+    interface-peer {eth1 n5}
+}
+
+node n2 {
+    type router
+    model router
+    network-config {
+	hostname Roteador
+	!
+	interface eth3
+	 ipv6 address 2001:db8:4::1/64
+	 ip address 192.0.6.2/24
+	!
+	interface eth2
+	 ip address 192.0.4.1/24
+	 ipv6 address 2001:db8:2::1/64
+	!
+	interface eth1
+	 ip address 192.0.3.1/24
+	 ipv6 address 2001:db8:1::1/64
+	!
+	interface eth0
+	 ip address 192.0.2.2/24
+	 ipv6 address 2001:db8:0::2/64
+	!
+    }
+    canvas c1
+    iconcoords {510.0 247.0}
+    labelcoords {478.0 222.0}
+    interface-peer {eth0 n1}
+    interface-peer {eth1 n3}
+    interface-peer {eth2 n4}
+    interface-peer {eth3 n6}
+}
+
+node n3 {
+    type router
+    model host
+    network-config {
+	hostname servidor-web
+	!
+	interface eth0
+	 ip address 192.0.3.10/24
+	 ipv6 address 2001:db8:1::10/64
+	!
+    }
+    canvas c1
+    iconcoords {621.0 421.0}
+    labelcoords {621.0 453.0}
+    interface-peer {eth0 n2}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	files=('servidor.py', 'index.html', )
+	cmdup=('python servidor.py', )
+	meta=servidor
+	starttime=0
+	}
+    }
+    custom-config {
+	custom-config-id service:UserDefined:index.html
+	custom-command index.html
+	config {
+	<html>
+	<body>
+	<p> A empresa sob domínio salvedicasedinheiro.com.br possui sua página web para manter seus usuários informados sobre finanças, e estes podem entrar em sua página pessoal via login, anotando seus gastos e investimentos, melhorando suas finanças a partir das dicas.
+	</p>
+	<p> A rede da empresa conta com o servidor web e um banco de dados para as informações de cada página pessoa. Os dados de login serão armazenados no banco de dados em nuvem AllonDB (serviço mensal da Google).
+	</p>
+	</body>
+	</html>
+	}
+    }
+    custom-config {
+	custom-config-id service:UserDefined:servidor.py
+	custom-command servidor.py
+	config {
+	from socket import *
+	
+	portaServidor = 12000
+	
+	socketServidor = socket (AF_INET, SOCK_STREAM)
+	
+	socketServidor.bind (('192.0.3.10', portaServidor))
+	
+	socketServidor.listen (1)
+	
+	# Python 2
+	# print "O servidor esta pronto para receber"
+	
+	# Python 3
+	print ("O servidor esta pronto para receber")
+	
+	while 1 :
+	
+	    socketConexao, endereco = socketServidor.accept ()
+	
+	    frase = socketConexao.recv (1024)
+	
+	    fraseMaiscula = frase.upper ()
+	
+	    socketConexao.send (fraseMaiscula)
+	
+	    socketConexao.close ()
+	
+	}
+    }
+    services {DefaultRoute SSH HTTP UserDefined}
+}
+
+node n4 {
+    type router
+    model PC
+    network-config {
+	hostname rede-domestica
+	!
+	interface eth0
+	 ip address 192.0.4.20/24
+	 ipv6 address 2001:db8:2::20/64
+	!
+    }
+    canvas c1
+    iconcoords {866.0 248.0}
+    labelcoords {890.0 274.0}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	files=('cliente.py', )
+	cmdup=('python cliente.py', )
+	meta=cliente
+	starttime=0
+	}
+    }
+    custom-config {
+	custom-config-id service:UserDefined:cliente.py
+	custom-command cliente.py
+	config {
+	
+	# Importação da biblioteca de socket
+	from socket import *
+	
+	nomeServidor = '127.0.0.1'
+	
+	portaServidor = 12000
+	
+	socketCliente = socket (AF_INET, SOCK_STREAM)
+	
+	socketCliente.connect ((nomeServidor, portaServidor))
+	
+	# Python 2
+	# frase = raw_input ('Informe uma frase em letras minusculas: ')
+	
+	# Python 3
+	frase = input ('Informe uma frase em letras minusculas: ')
+	
+	socketCliente.send (frase.encode())
+	
+	fraseModificada = socketCliente.recv (1024)
+	
+	# Python 2
+	# print "Do Servidor: ", fraseModificada
+	
+	# Python 3
+	print ("Do Servidor: ", fraseModificada.decode())
+	
+	socketCliente.close ()
+	
+	}
+    }
+    services {DefaultRoute UserDefined}
+    interface-peer {eth0 n2}
+}
+
+node n5 {
+    type router
+    model host
+    network-config {
+	hostname AlloyDB
+	!
+	interface eth0
+	 ip address 192.0.5.10/24
+	 ipv6 address 2001:db8:3::10/64
+	!
+    }
+    canvas c1
+    iconcoords {164.0 104.0}
+    labelcoords {162.0 82.0}
+    interface-peer {eth0 n1}
+}
+
+node n6 {
+    type router
+    model host
+    network-config {
+	hostname Banco-de-Dados
+	!
+	interface eth0
+	 ip address 192.0.6.10/24
+	 ipv6 address 2001:db8:4::10/64
+	!
+    }
+    canvas c1
+    iconcoords {592.0 87.0}
+    labelcoords {595.0 61.0}
+    interface-peer {eth0 n2}
+}
+
+link l1 {
+    nodes {n1 n2}
+    bandwidth 0
+}
+
+link l2 {
+    nodes {n2 n3}
+    bandwidth 0
+}
+
+link l3 {
+    nodes {n2 n4}
+    bandwidth 0
+}
+
+link l4 {
+    nodes {n5 n1}
+    bandwidth 0
+}
+
+link l5 {
+    nodes {n2 n6}
+    bandwidth 0
+}
+
+canvas c1 {
+    name {Canvas1}
+}
+
+option global {
+    interface_names no
+    ip_addresses yes
+    ipv6_addresses yes
+    node_labels yes
+    link_labels yes
+    show_api no
+    background_images no
+    annotations yes
+    grid yes
+    traffic_start 0
+}
+
+option session {
+}
+
